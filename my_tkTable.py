@@ -33,7 +33,6 @@ class MyTree(ttk.Treeview):
     фона при вставке(метод `insert`), в зависимости от содержимого выводимых данных.
     Подсмотрел тут:    https://ru.stackoverflow.com/questions/1074824
     """
-
     def __init__(self, *args, **kwargs):
         """Элементам с тегом even(четные) назначить цвет фона aquamarine,
          а элементам с тегом odd(нечетные) назначить цвет фона lightyellow.
@@ -87,6 +86,9 @@ class Product:
             self.db_field.append(row[1])        # Имена полей в БД и таблице `grid_data`
             self.db_field_type.append(row[2])   # Типы данных полей в БД
 
+        # Соответствие имен полей в БД и в таблице `Treeview`
+        field_name = {'id': '№', 'name': 'Наименование', 'price': 'Цена'}
+
         # Переменные для сортировки элементов в таблице `Treeview`
         self.sort_name = ''
         self.sort_order = ''
@@ -120,19 +122,18 @@ class Product:
         self.style.configure('Treeview.Heading', font='tahoma 12', foreground='blue')
 
         # Таблица `Treeview`
-        self.tree = MyTree(columns=('id', 'name', 'price'), displaycolumns=(0, 1, 2), show='headings',
-                           padding=(0, 0, 16, 0), selectmode='extended', takefocus=True)
+        self.tree = MyTree(columns=self.db_field, displaycolumns=([i for i in range(len(self.db_field))]),
+                           show='headings', padding=(0, 0, 16, 0), selectmode='extended', takefocus=True)
         # Полоса прокрутки таблицы `Treeview`
         yscroll = ttk.Scrollbar(self.tree, orient=tk.VERTICAL, command=self.tree.yview)
         self.tree.config(yscrollcommand=yscroll.set)
         # Столбцы таблицы фиксированного размера `Treeview`
-        self.tree.column('id', width=60, stretch=False, anchor=tk.CENTER)
-        self.tree.column('name', width=200, anchor=tk.W)
-        self.tree.column('price', width=140, stretch=False, anchor=tk.E)
+        self.tree.column(self.db_field[0], width=60, stretch=False, anchor=tk.CENTER)
+        self.tree.column(self.db_field[1], width=200, anchor=tk.W)
+        self.tree.column(self.db_field[2], width=140, stretch=False, anchor=tk.E)
         # Шапка таблицы `Treeview`
-        self.tree.heading('id', text='№', anchor=tk.CENTER)
-        self.tree.heading('name', text='Наименование', anchor=tk.CENTER)
-        self.tree.heading('price', text='Цена', anchor=tk.CENTER)
+        for f in self.db_field:
+            self.tree.heading(f, text=field_name.get(f), anchor=tk.CENTER)
         # Полное контекстное меню для заполненной части таблицы `Treeview`
         self.popup_menu_filter_full = tk.Menu(self.tree, tearoff=0)
         self.popup_menu_filter_full.add_command(label="Set filter", command=self.filter_set)
@@ -340,7 +341,7 @@ class Product:
         # Очистка списка и полей формы
         sel_list = []
         self.clear_entry()
-        # Формирование списока выделенных строк
+        # Формирование списка выделенных строк
         for i in self.tree.selection():
             if not self.tree.tag_has('total', i):
                 sel_list.append(self.tree.item(i, 'values'))

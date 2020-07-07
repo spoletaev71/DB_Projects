@@ -126,7 +126,7 @@ class MyFrame(wx.Frame):
         hszr_price.Fit(self.pnl_price)
         vszr_global.Add(self.pnl_price, 0, wx.ALL | wx.EXPAND, 5)
 
-        # Формируем таблицу `grid_data`
+        # Формируем текст сообщений на форме
         self.message = wx.StaticText(self.pnl_frame, wx.ID_ANY, '', wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE)
         self.message.Wrap(-1)
         self.message.SetFont(wx.Font(11, 70, 90, 90, False, "Tahoma"))
@@ -138,7 +138,7 @@ class MyFrame(wx.Frame):
         self.grid_data = wx.grid.Grid(self.pnl_frame, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.DOUBLE_BORDER)
 
         #   Grid
-        self.grid_data.CreateGrid(0, 3)
+        self.grid_data.CreateGrid(0, len(self.grid_field))
         self.grid_data.EnableEditing(False)
         self.grid_data.EnableGridLines(True)
         self.grid_data.EnableDragGridSize(False)
@@ -180,7 +180,7 @@ class MyFrame(wx.Frame):
         self.grid_data.Bind(wx.EVT_CONTEXT_MENU, self.grid_dataOnGridCellRightClick)
         vszr_global.Add(self.grid_data, 1, wx.ALL | wx.EXPAND, 5)
 
-        # Формируем кнопки `Add`, `Edit`, `Del`
+        # Формируем кнопок `Add`, `Edit`, `Del`
         self.pnl_btn = wx.Panel(self.pnl_frame, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         # self.pnl_btn.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
         self.pnl_btn.SetFont(wx.Font(12, 70, 90, 90, False, "Courier"))
@@ -315,7 +315,7 @@ class MyFrame(wx.Frame):
         # Очистка списка и полей формы
         sel_list = []
         self.clear_entry()
-        # Формирование списока выделенных строк
+        # Формирование списка выделенных строк
         for row in self.grid_data.GetSelectedRows():
             sel_row = []
             color = self.grid_data.GetCellBackgroundColour(row, 0)
