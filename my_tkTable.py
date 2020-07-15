@@ -145,7 +145,7 @@ class Product:
         self.tree.bind('<ButtonRelease-1>', self.click_tree)
         self.tree.bind("<Button-3>", self.click_tree)
         self.tree.bind('<space>', self.select_one)
-        self.tree.bind('<Control-space>', self.select_multiple)
+        self.tree.bind('<Control-space>', self.select_multiple)     # TODO
         #
         self.tree.pack(padx=10, expand=1, fill=tk.BOTH)
         yscroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -286,7 +286,7 @@ class Product:
         self.tree.selection_set(self.tree.focus())
         self.select_row_get()
 
-    def select_multiple(self, event):
+    def select_multiple(self, event):   # TODO
         """Выбор нескольких записей. !!! НЕДОПИЛЕНО !!!"""
         self.tree = event.widget
         sel_list = list(self.tree.selection())
