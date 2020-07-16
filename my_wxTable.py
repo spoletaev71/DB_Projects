@@ -270,13 +270,14 @@ class MyFrame(wx.Frame):
                 for c in range(self.grid_data.NumberCols):
                     self.grid_data.SetCellValue(r, c, str(row[c]))
                     # подсчет данных для итогов
-                    try:
-                        if sum_col[c] is None:
-                            sum_col[c] = float(row[c])  # noqa
-                        else:
-                            sum_col[c] += float(row[c])
-                    except ValueError:
-                        pass  # print('ValueError', c)
+                    if self.db_field_type[c] == 'INTEGER' or self.db_field_type[c] == 'REAL':
+                        try:
+                            if sum_col[c] is None:
+                                sum_col[c] = float(row[c])  # noqa
+                            else:
+                                sum_col[c] += float(row[c])
+                        except ValueError:
+                            pass  # print('ValueError', c)
                 r += 1
             # Итоги
             self.total_line(r, sum_col)

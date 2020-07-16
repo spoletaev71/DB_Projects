@@ -216,32 +216,33 @@ class Product:
             text_comment (str): текст комментария к итоговой строке. Если параметр не задан,
                 то комментарий не выводится.
         """
-        # Если уже есть итоги, то запоминаем и удаляем из таблицы
-        if self.tree.tag_has('total'):
-            values_total = list(self.tree.item(self.tree.tag_has('total'), 'values'))
-            self.tree.delete(self.tree.tag_has('total'))
-            items = self.tree.get_children()
-        else:                                               # Иначе формируем новые
-            items = self.tree.get_children()
-            values_total = ['' for _ in items[0]]
-        # Запоминаем комментарий, если есть
-        if column_comment is not None and text_comment is not None:
-            values_total[column_comment] = text_comment
-        # Определяемся с функцией итогов, расчитываем и запоминаем их
-        if func_total == 'qty.':
-            values_total[column_total] = str(len(items))    # Преобразуем в строку для задания нужного тэга
-        elif func_total == 'avg' or func_total == 'sum':
-            summa = 0
-            for item in items:
-                summa += float(self.tree.item(item, 'values')[column_total])
-            if func_total == 'avg':     # average
-                values_total[column_total] = str(round(summa / len(items), 2)) if len(items) > 0 else '-'
-            elif func_total == 'sum':
-                values_total[column_total] = str(summa)
-        else:
-            return
-        # Выводим итоги в таблицу
-        self.tree.insert('', tk.END, values=tuple(values_total))
+        if self.db_field_type[column_total] == 'INTEGER' or self.db_field_type[column_total] == 'REAL':
+            # Если уже есть итоги, то запоминаем и удаляем из таблицы
+            if self.tree.tag_has('total'):
+                values_total = list(self.tree.item(self.tree.tag_has('total'), 'values'))
+                self.tree.delete(self.tree.tag_has('total'))
+                items = self.tree.get_children()
+            else:                                               # Иначе формируем новые
+                items = self.tree.get_children()
+                values_total = ['' for _ in items[0]]
+            # Запоминаем комментарий, если есть
+            if column_comment is not None and text_comment is not None:
+                values_total[column_comment] = text_comment
+            # Определяемся с функцией итогов, расчитываем и запоминаем их
+            if func_total == 'qty.':
+                values_total[column_total] = str(len(items))    # Преобразуем в строку для задания нужного тэга
+            elif func_total == 'avg' or func_total == 'sum':
+                summa = 0
+                for item in items:
+                    summa += float(self.tree.item(item, 'values')[column_total])
+                if func_total == 'avg':     # average
+                    values_total[column_total] = str(round(summa / len(items), 2)) if len(items) > 0 else '-'
+                elif func_total == 'sum':
+                    values_total[column_total] = str(summa)
+            else:
+                return
+            # Выводим итоги в таблицу
+            self.tree.insert('', tk.END, values=tuple(values_total))
 
     def clear_entry(self):
         """Очищает поля ввода/редактирования."""
