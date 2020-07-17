@@ -168,6 +168,7 @@ class MyFrame(wx.Frame):
         self.grid_data.SetLabelFont(wx.Font(12, 70, 90, 90, False, "Tahoma"))
         self.grid_data.SetLabelTextColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT))
         #   Cell Defaults
+        self.grid_data.SetDefaultCellFitMode(wx.grid.GridFitMode.Ellipsize())
         self.grid_data.SetDefaultCellAlignment(wx.ALIGN_LEFT, wx.ALIGN_TOP)
         self.grid_data.SetDefaultCellFont(wx.Font(11, 70, 90, 90, False, "Arial"))
 
@@ -218,6 +219,7 @@ class MyFrame(wx.Frame):
         self.Centre(wx.BOTH)
 
         # Connect Events
+        self.Bind(wx.EVT_SIZE, self.form_resize)
         self.entry_name.Bind(wx.EVT_CHAR, self.OnKeyPress)
         self.entry_price.Bind(wx.EVT_CHAR, self.OnKeyPress)
         self.grid_data.Bind(wx.EVT_CHAR, self.OnKeyPress)
@@ -341,6 +343,12 @@ class MyFrame(wx.Frame):
         return sel_list
 
     # Virtual event handlers, overide them in your derived class
+    def form_resize(self, event):
+        sz = wx.Window.GetSize(self)
+        if sz[0] > 500 :
+            self.grid_data.SetColSize(1, sz[0]-260)
+        event.Skip()
+
     def grid_dataOnGridCellLeftClick(self, event):  # noqa
         """Очищает поля ввода/редактирования при снятии выделения."""
         if not event.Selecting():
