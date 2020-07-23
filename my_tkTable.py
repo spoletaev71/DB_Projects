@@ -125,6 +125,7 @@ class Product:
         self.tree = MyTree(columns=self.db_field, displaycolumns=([i for i in range(len(self.db_field))]),
                            show='headings', padding=(0, 0, 16, 0), selectmode='extended', takefocus=True)
         # Полоса прокрутки таблицы `Treeview`
+        xscroll = ttk.Scrollbar(self.tree, orient=tk.HORIZONTAL, command=self.tree.xview)
         yscroll = ttk.Scrollbar(self.tree, orient=tk.VERTICAL, command=self.tree.yview)
         self.tree.config(yscrollcommand=yscroll.set)
         # Столбцы таблицы фиксированного размера `Treeview`
@@ -148,6 +149,7 @@ class Product:
         self.tree.bind('<Control-space>', self.select_multiple)     # TODO
         #
         self.tree.pack(padx=10, expand=1, fill=tk.BOTH)
+        xscroll.pack(side=tk.BOTTOM, fill=tk.X)
         yscroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Фрейм с кнопками редактирования

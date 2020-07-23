@@ -138,22 +138,27 @@ class MyFrame(wx.Frame):
         self.grid_data = wx.grid.Grid(self.pnl_frame, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.DOUBLE_BORDER)
 
         #   Grid
-        self.grid_data.CreateGrid(0, len(self.grid_field))
+        self.grid_data.CreateGrid(0, len(self.grid_field), wx.grid.Grid.SelectRows)
         self.grid_data.EnableEditing(False)
         self.grid_data.EnableGridLines(True)
         self.grid_data.EnableDragGridSize(False)
         self.grid_data.SetMargins(0, 0)
 
         #   Columns
-        self.grid_data.SetColSize(0, 60)
+        self.grid_data.SetDefaultColSize(80, resizeExistingCols=True)
+        self.grid_data.SetColMinimalAcceptableWidth(80)
+        # self.grid_data.SetColSize(0, 60)
         self.grid_data.SetColSize(1, 240)
-        self.grid_data.SetColSize(2, 100)
+        # self.grid_data.SetColSize(2, 100)
         # self.grid_data.AutoSizeColumns()
         self.grid_data.EnableDragColMove(False)
         self.grid_data.EnableDragColSize(True)
         self.grid_data.SetColLabelSize(30)
         for i in range(len(self.grid_field)):
             self.grid_data.SetColLabelValue(i, self.grid_field[i])
+            # Определяем столбец как float с выравниванием значений по умолчанию(справа) и 2 знаками после ','
+            if self.grid_field[i] == 'Цена':
+                self.grid_data.SetColFormatFloat(i, width=-1, precision=2)
         self.grid_data.SetColLabelAlignment(wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
 
         #   Rows
@@ -271,6 +276,9 @@ class MyFrame(wx.Frame):
                 self.grid_data.AppendRows(1)
                 for c in range(self.grid_data.NumberCols):
                     self.grid_data.SetCellValue(r, c, str(row[c]))
+                    # Выравниваем значения в ячейках по центру
+                    if self.grid_data.GetColLabelValue(c) == '№':
+                        self.grid_data.SetCellAlignment(r, c, wx.ALIGN_CENTRE, wx.ALIGN_TOP)
                     # подсчет данных для итогов
                     if self.db_field_type[c] == 'INTEGER' or self.db_field_type[c] == 'REAL':
                         try:
@@ -323,8 +331,8 @@ class MyFrame(wx.Frame):
             sel_row = []
             color = self.grid_data.GetCellBackgroundColour(row, 0)
             if color[1] == 255:  # добавляем только белые строки
-                for cel in range(self.grid_data.NumberCols):
-                    sel_row.append(self.grid_data.GetCellValue(row, cel))
+                for col in range(self.grid_data.NumberCols):
+                    sel_row.append(self.grid_data.GetCellValue(row, col))
                 sel_list.append(tuple(sel_row))
         # Заполнение полей ввода значениями, если выделена одна запись
         if len(sel_list) == 1:
@@ -344,9 +352,13 @@ class MyFrame(wx.Frame):
 
     # Virtual event handlers, overide them in your derived class
     def form_resize(self, event):
+        """Отслеживает изменение размеров формы и корректирует виджеты."""
         sz = wx.Window.GetSize(self)
-        if sz[0] > 500 :
+        # Изменяем ширину столбца `name` в зависимости от размера фрейма
+        if sz[0] >= 500:
             self.grid_data.SetColSize(1, sz[0]-260)
+        else:
+            self.grid_data.SetColSize(1, 240)
         event.Skip()
 
     def grid_dataOnGridCellLeftClick(self, event):  # noqa
