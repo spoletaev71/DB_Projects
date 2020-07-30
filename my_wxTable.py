@@ -32,7 +32,7 @@ def main():
 
 
 class Product(wx.App):
-    def __init__(self, redirect=False, filename=None, useBestVisual=False, clearSigInt=True):   # noqa
+    def __init__(self, redirect=False, filename=None, useBestVisual=False, clearSigInt=True):  # noqa
         super().__init__(redirect, filename, useBestVisual, clearSigInt)
 
     def OnInit(self):
@@ -47,16 +47,15 @@ class Product(wx.App):
 # http://www.wxformbuilder.org/
 ###########################################################################
 class MyFrame(wx.Frame):
-
     def __init__(self):
-        wx.Frame.__init__(self, parent=None, id=wx.ID_ANY, title=u"Product wxPython grid", pos=wx.DefaultPosition,
-                          size=wx.Size(500, 500), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
+        super().__init__(parent=None, id=wx.ID_ANY, title=u"Product wxPython grid", pos=wx.DefaultPosition,
+                         size=wx.Size(500, 500), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
         # Запрос на создание таблицы в БД
         query = 'CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, price REAL)' \
             .format(TABLE_NAME)
         run_query(query)
-
+        # Запрос инфы по таблице(поля и др.)
         query = 'PRAGMA table_info({})'.format(TABLE_NAME)
         db_rows = run_query(query)
 
@@ -350,13 +349,13 @@ class MyFrame(wx.Frame):
         # Возврат результата
         return sel_list
 
-    # Virtual event handlers, overide them in your derived class
+    # Virtual event handlers, override them in your derived class
     def form_resize(self, event):
         """Отслеживает изменение размеров формы и корректирует виджеты."""
         sz = wx.Window.GetSize(self)
         # Изменяем ширину столбца `name` в зависимости от размера фрейма
         if sz[0] >= 500:
-            self.grid_data.SetColSize(1, sz[0]-260)
+            self.grid_data.SetColSize(1, sz[0] - 260)
         else:
             self.grid_data.SetColSize(1, 240)
         event.Skip()
@@ -368,7 +367,7 @@ class MyFrame(wx.Frame):
             self.clear_entry()
         event.Skip()
 
-    def grid_dataOnGridCellRightClick(self, event): # noqa
+    def grid_dataOnGridCellRightClick(self, event):  # noqa
         """Определяет временные переменные поля `filter_name_tmp` и значения `filter_data_tmp` для фильтрации,
         а так же, определяет содержимое контекстного меню.
         """
@@ -391,7 +390,7 @@ class MyFrame(wx.Frame):
         self.grid_data.PopupMenu(self.pop_menu)
         event.Skip()
 
-    def grid_dataOnGridLabelLeftClick(self, event): # noqa
+    def grid_dataOnGridLabelLeftClick(self, event):  # noqa
         """Определяет переменные поля `sort_name` и порядка `sort_order` сортировки данных в таблице `grid_data`."""
         if event.GetCol() >= 0:
             if self.grid_data.IsSortingBy(event.GetCol()) and self.grid_data.IsSortOrderAscending():
@@ -409,13 +408,13 @@ class MyFrame(wx.Frame):
             self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
         event.Skip()
 
-    def grid_dataOnGridRangeSelect(self, event):    # noqa
+    def grid_dataOnGridRangeSelect(self, event):  # noqa
         """Формирование списка выделенных строк."""
         if event.Selecting():
             self.select_row_get()
         event.Skip()
 
-    def OnKeyPress(self, event):    # noqa
+    def OnKeyPress(self, event):  # noqa
         """Определяет поведение виджетов при нажатии клавиш клавиатуры."""
         if event.GetKeyCode() == wx.WXK_TAB:  # Tab
             self.grid_data.Navigate()
@@ -427,7 +426,7 @@ class MyFrame(wx.Frame):
             self.del_click(event)
         event.Skip()
 
-    def pm_setfilOnMenuSelect(self, event): # noqa
+    def pm_setfilOnMenuSelect(self, event):  # noqa
         """Определяет переменные поля `filter_name` и значения `filter_data` для фильтрации записей,
         отображаемых в таблице `grid_data`.
         """
@@ -437,7 +436,7 @@ class MyFrame(wx.Frame):
         self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
         event.Skip()
 
-    def pm_clrfilOnMenuSelect(self, event): # noqa
+    def pm_clrfilOnMenuSelect(self, event):  # noqa
         """Очищает переменные фильтра для записей отображаемых в таблице `grid_data`."""
         self.filter_name = ''
         self.filter_data = ''

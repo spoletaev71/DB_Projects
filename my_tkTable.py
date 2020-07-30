@@ -76,7 +76,7 @@ class Product:
         query = 'CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, price REAL)'\
             .format(TABLE_NAME)
         run_query(query)
-
+        # Запрос инфы по таблице(поля и др.)
         query = 'PRAGMA table_info({})'.format(TABLE_NAME)
         db_rows = run_query(query)
 
