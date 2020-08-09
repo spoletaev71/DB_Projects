@@ -65,7 +65,7 @@ class MyFrame(wx.Frame):
             self.db_field.append(row[1])  # Имена полей в БД и таблице `grid_data`
             self.db_field_type.append(row[2])  # Типы данных полей в БД
 
-        # Имена полей в таблице `grid_data`
+        # Имена полей в шапке таблицы `grid_data`
         self.grid_field = ['№', 'Наименование', 'Цена']
         # Переменные для сортировки элементов в таблице `grid_data`
         self.sort_name = ''
@@ -268,7 +268,7 @@ class MyFrame(wx.Frame):
         # Выборка данных из базы
         db_rows = run_query(query, params)
         # Заполнение таблицы
-        if db_rows is not None:
+        if db_rows:
             sum_col = [None for _ in range(self.grid_data.NumberCols)]
             r = 0
             for row in db_rows:
@@ -279,12 +279,12 @@ class MyFrame(wx.Frame):
                     if self.grid_data.GetColLabelValue(c) == '№':
                         self.grid_data.SetCellAlignment(r, c, wx.ALIGN_CENTRE, wx.ALIGN_TOP)
                     # подсчет данных для итогов
-                    if self.db_field_type[c] == 'INTEGER' or self.db_field_type[c] == 'REAL':
+                    if self.db_field_type[c] in ('INTEGER', 'REAL'):
                         try:
-                            if sum_col[c] is None:
-                                sum_col[c] = float(row[c])  # noqa
-                            else:
+                            if sum_col[c]:
                                 sum_col[c] += float(row[c])
+                            else:
+                                sum_col[c] = float(row[c])  # noqa
                         except ValueError:
                             pass  # print('ValueError', c)
                 r += 1

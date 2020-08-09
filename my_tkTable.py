@@ -192,7 +192,7 @@ class Product:
         # Выборка данных из базы
         db_rows = run_query(query, params)
         # Заполнение таблицы
-        if db_rows != 'None':
+        if db_rows:
             for row in db_rows:
                 self.tree.insert('', tk.END, values=row)
             records = self.tree.get_children()
@@ -218,7 +218,7 @@ class Product:
             text_comment (str): текст комментария к итоговой строке. Если параметр не задан,
                 то комментарий не выводится.
         """
-        if self.db_field_type[column_total] == 'INTEGER' or self.db_field_type[column_total] == 'REAL':
+        if self.db_field_type[column_total] in ('INTEGER', 'REAL'):
             # Если уже есть итоги, то запоминаем и удаляем из таблицы
             if self.tree.tag_has('total'):
                 values_total = list(self.tree.item(self.tree.tag_has('total'), 'values'))
@@ -228,7 +228,7 @@ class Product:
                 items = self.tree.get_children()
                 values_total = ['' for _ in items[0]]
             # Запоминаем комментарий, если есть
-            if column_comment is not None and text_comment is not None:
+            if column_comment and text_comment:
                 values_total[column_comment] = text_comment
             # Определяемся с функцией итогов, расчитываем и запоминаем их
             if func_total == 'qty.':
