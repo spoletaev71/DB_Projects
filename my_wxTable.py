@@ -300,7 +300,7 @@ class MyFrame(wx.Frame):
             r (int): количество строк в таблице.
             sum_col (list): список с итоговыми данными по столбцам.
         """
-        if r > 0:
+        if r > 0 and any(sum_col):
             self.grid_data.AppendRows(1)
             attr = wx.grid.GridCellAttr()
             attr.SetBackgroundColour('pink')
