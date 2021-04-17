@@ -448,7 +448,7 @@ class MyFrame(wx.Frame):
         try:
             price = float(self.entry_price.GetValue().replace(',', '.'))
         except ValueError:
-            self.message.Label = 'Entry not correct!(ValueError:record_add)'
+            self.message.Label = 'Entry "price" not correct!(ValueError:record_add)'
             return
 
         name = self.entry_name.GetValue().strip()
@@ -469,7 +469,7 @@ class MyFrame(wx.Frame):
         try:
             price = float(self.entry_price.GetValue().replace(',', '.'))
         except ValueError:
-            self.message.Label = 'Entry not correct!(ValueError:record_edit)'
+            self.message.Label = 'Entry "price" not correct!(ValueError:record_edit)'
             return
 
         name = self.entry_name.GetValue().strip()

@@ -386,7 +386,7 @@ class Product:
         try:
             price = float(self.entry_price.get().replace(',', '.'))
         except ValueError:
-            self.message['text'] = 'Entry not correct!(ValueError:record_add)'
+            self.message['text'] = 'Entry "price" not correct!(ValueError:record_add)'
             return
 
         name = self.entry_name.get().strip()
@@ -406,7 +406,7 @@ class Product:
         try:
             price = float(self.entry_price.get().replace(',', '.'))
         except ValueError:
-            self.message['text'] = 'Entry not correct!(ValueError:record_edit)'
+            self.message['text'] = 'Entry "price" not correct!(ValueError:record_edit)'
             return
 
         name = self.entry_name.get().strip()
