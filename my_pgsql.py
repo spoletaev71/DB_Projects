@@ -33,8 +33,7 @@ def run_query(query, query_param=()):
         with psycopg2.connect(**params) as conn:
             conn.autocommit = True
             cursor = conn.cursor()
-            cursor.execute(query, query_param)
-            query_result = cursor.fetchall() if 'SELECT' in query else 'None'
+            query_result = cursor.execute(query, query_param)
             #conn.commit()
         return query_result
     except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
