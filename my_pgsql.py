@@ -4,7 +4,7 @@ import traceback
 from configparser import ConfigParser
 
 
-DB_NAME = 'mydb'  # БД PostgreeSQL
+DB_NAME = 'mydb'  # БД PostgreeSQL 12
 TABLE_NAME = 'product'  # Наименование таблицы в БД (если не существует, то создаётся новая)
 
 
@@ -45,7 +45,7 @@ def run_query(query, query_param=()):
         return 'None'
 
 
-def view(query_view):
+def view_query(query_view):
     """Подллючение к БД и выполнение запроса."""
     try:
         params = config()
@@ -105,12 +105,12 @@ if __name__ == '__main__':
     run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", ('power cable', 10))
     run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", ('mouse', 100))
     run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", ('keyboard', 200))
-    view("SELECT * FROM {};".format(TABLE_NAME))
+    view_query("SELECT * FROM {};".format(TABLE_NAME))
 
     # edit
     run_query("CALL product_edit(%s, %s::VARCHAR(100), %s::MONEY)", (2, 'CPU', 1499.99))
-    view("SELECT * FROM {};".format(TABLE_NAME))
+    view_query("SELECT * FROM {};".format(TABLE_NAME))
 
     # del
     run_query("CALL product_del(%s)", (1,))
-    view("SELECT * FROM {};".format(TABLE_NAME))
+    view_query("SELECT * FROM {};".format(TABLE_NAME))
