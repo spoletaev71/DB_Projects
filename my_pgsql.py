@@ -29,7 +29,7 @@ def config(filename='mydb.ini', section='postgresql'):
     return db
 
 
-def run_query(query, query_param=()):
+def run_query(query_run, query_param=()):
     """ Подключение к БД и выполнение запроса """
     try:
         # psycopg2.connect(database="db", user="postgres", password="*", host="127.0.0.1", port="5432")
@@ -37,7 +37,7 @@ def run_query(query, query_param=()):
         with psycopg2.connect(**params) as conn:
             conn.autocommit = True
             cursor = conn.cursor()
-            query_result = cursor.execute(query, query_param)
+            query_result = cursor.execute(query_run, query_param)
             # conn.commit()
         return query_result
     except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
@@ -118,6 +118,7 @@ if __name__ == '__main__':
     # del
     run_query("CALL product_del(%s)", (1,))
     view_query("SELECT * FROM {};".format(TABLE_NAME))
+
 
     while True:
         print(' Выполнено.\n Для очистки БД от изменений, нажмите клавишу "c"\n Для выхода "q"')
