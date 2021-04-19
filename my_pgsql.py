@@ -1,4 +1,5 @@
 import sys
+import keyboard
 import psycopg2
 import traceback
 from configparser import ConfigParser
@@ -9,6 +10,9 @@ TABLE_NAME = 'product'  # Наименование таблицы в БД (ес�
 
 
 def config(filename='mydb.ini', section='postgresql'):
+    """ Читаем и парсим данные для подключения из ini файла.
+    Взято тут https://www.postgresqltutorial.com/postgresql-python/connect/ """
+
     # create a parser
     parser = ConfigParser()
     # read config file
@@ -26,7 +30,7 @@ def config(filename='mydb.ini', section='postgresql'):
 
 
 def run_query(query, query_param=()):
-    """Подллючение к БД и выполнение запроса."""
+    """ Подключение к БД и выполнение запроса """
     try:
         # psycopg2.connect(database="db", user="postgres", password="*", host="127.0.0.1", port="5432")
         params = config()
@@ -45,7 +49,7 @@ def run_query(query, query_param=()):
 
 
 def view_query(query_view):
-    """Подллючение к БД и выполнение запроса."""
+    """ Подллючение к БД и вывод данных в консоль """
     try:
         params = config()
         with psycopg2.connect(**params) as conn:
@@ -63,7 +67,6 @@ def view_query(query_view):
         print("-" * 60)
         traceback.print_exc(file=sys.stdout)
         print("-" * 60)
-        return 'None'
 
 
 if __name__ == '__main__':
@@ -71,6 +74,8 @@ if __name__ == '__main__':
     # SELECT tablename FROM pg_tables WHERE schemaname='public'; # посмотреть список таблиц в БД
 
     query = (
+        # Удаляем таблицу в БД, если есть(только для PostgreeSQL version >9.1)
+        "DROP TABLE IF EXISTS {} CASCADE".format(TABLE_NAME),
         # Создаем таблицу в БД, если нету(только для PostgreeSQL version >9.1)
         "CREATE TABLE IF NOT EXISTS {} "
         "(p_id SERIAL PRIMARY KEY, name VARCHAR(100) NOT NULL, price MONEY NOT NULL DEFAULT 0)".format(TABLE_NAME),
@@ -113,3 +118,20 @@ if __name__ == '__main__':
     # del
     run_query("CALL product_del(%s)", (1,))
     view_query("SELECT * FROM {};".format(TABLE_NAME))
+
+    while True:
+        print(' Выполнено.\n Для очистки БД от изменений, нажмите клавишу "c"\n Для выхода "q"')
+        if keyboard.read_key() == "c":
+            # Чистим все что натворили в БД(только для PostgreeSQL version >9.1)
+            query = (
+                "DROP TABLE IF EXISTS {} CASCADE".format(TABLE_NAME),
+                "DROP PROCEDURE IF EXISTS product_add CASCADE",
+                "DROP PROCEDURE IF EXISTS product_edit CASCADE",
+                "DROP PROCEDURE IF EXISTS product_del CASCADE"
+            )
+            for q in query:
+                run_query(q)
+        elif keyboard.is_pressed("q"):
+            # Завершаем работу программы
+            print('До новых встреч! :)')
+            sys.exit()
