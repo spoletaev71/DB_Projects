@@ -38,7 +38,7 @@ def run_query(query, query_param=()):
             conn.autocommit = True
             cursor = conn.cursor()
             query_result = cursor.execute(query, query_param)
-            #conn.commit()
+            # conn.commit()
         return query_result
     except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
         print("Exception in user code:")
