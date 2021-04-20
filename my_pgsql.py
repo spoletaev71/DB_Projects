@@ -5,7 +5,7 @@ import traceback
 from configparser import ConfigParser
 
 
-DB_NAME = 'mydb'  # БД PostgreeSQL 12
+DB_NAME = 'mydb'  # БД PostgreSQL
 TABLE_NAME = 'product'  # Наименование таблицы в БД (если не существует, то создаётся новая)
 
 
@@ -38,6 +38,14 @@ def run_query(query_run, query_param=()):
             conn.autocommit = True
             cursor = conn.cursor()
             query_result = cursor.execute(query_run, query_param)
+            if 'SELECT' in query_run:
+                query_result = cursor.fetchall()
+                if query_result:
+                    for row in query_result:
+                        print("| {0:5d} | {1:50s} | {2:20s} |".format(row[0], row[1], row[2]))
+                    print('-' * 85)
+                else:
+                    print('Пусто')
             # conn.commit()
         return query_result
     except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
@@ -48,35 +56,14 @@ def run_query(query_run, query_param=()):
         return 'None'
 
 
-def view_query(query_view):
-    """ Подллючение к БД и вывод данных в консоль """
-    try:
-        params = config()
-        with psycopg2.connect(**params) as conn:
-            cursor = conn.cursor()
-            cursor.execute(query_view)
-            query_result = cursor.fetchall()
-        if query_result:
-            for row in query_result:
-                print("| {0:5d} | {1:50s} | {2:20s} |".format(row[0], row[1], row[2]))
-            print('-'*85)
-        else:
-            print('Пусто')
-    except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
-        print("Exception in user code:")
-        print("-" * 60)
-        traceback.print_exc(file=sys.stdout)
-        print("-" * 60)
-
-
 if __name__ == '__main__':
     # SELECT datname FROM pg_database; # посмотреть список БД
     # SELECT tablename FROM pg_tables WHERE schemaname='public'; # посмотреть список таблиц в БД
 
     query = (
-        # Удаляем таблицу в БД, если есть(только для PostgreeSQL version >9.1)
+        # Удаляем таблицу в БД, если есть(только для PostgreSQL version >9.1)
         "DROP TABLE IF EXISTS {} CASCADE".format(TABLE_NAME),
-        # Создаем таблицу в БД, если нету(только для PostgreeSQL version >9.1)
+        # Создаем таблицу в БД, если нету(только для PostgreSQL version >9.1)
         "CREATE TABLE IF NOT EXISTS {} "
         "(p_id SERIAL PRIMARY KEY, name VARCHAR(100) NOT NULL, price MONEY NOT NULL DEFAULT 0)".format(TABLE_NAME),
         # Создаем хранимые процедуры
@@ -109,21 +96,21 @@ if __name__ == '__main__':
     run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", ('power cable', 10))
     run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", ('mouse', 100))
     run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", ('keyboard', 200))
-    view_query("SELECT * FROM {};".format(TABLE_NAME))
+    run_query("SELECT * FROM {};".format(TABLE_NAME))
 
     # edit
     run_query("CALL product_edit(%s, %s::VARCHAR(100), %s::MONEY)", (2, 'CPU', 1499.99))
-    view_query("SELECT * FROM {};".format(TABLE_NAME))
+    run_query("SELECT * FROM {};".format(TABLE_NAME))
 
     # del
     run_query("CALL product_del(%s)", (1,))
-    view_query("SELECT * FROM {};".format(TABLE_NAME))
+    run_query("SELECT * FROM {};".format(TABLE_NAME))
 
 
     while True:
         print(' Выполнено.\n Для очистки БД от изменений, нажмите клавишу "c"\n Для выхода "q"')
         if keyboard.read_key() == "c":
-            # Чистим все что натворили в БД(только для PostgreeSQL version >9.1)
+            # Чистим все что натворили в БД(только для PostgreSQL version >9.1)
             query = (
                 "DROP TABLE IF EXISTS {} CASCADE".format(TABLE_NAME),
                 "DROP PROCEDURE IF EXISTS product_add CASCADE",
