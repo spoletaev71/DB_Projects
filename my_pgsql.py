@@ -106,7 +106,6 @@ if __name__ == '__main__':
     run_query("CALL product_del(%s)", (1,))
     run_query("SELECT * FROM {};".format(TABLE_NAME))
 
-
     while True:
         print(' Выполнено.\n Для очистки БД от изменений, нажмите клавишу "c"\n Для выхода "q"')
         if keyboard.read_key() == "c":
