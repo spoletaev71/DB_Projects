@@ -12,18 +12,19 @@ TABLE_NAME = 'product'      # Наименование таблицы в БД (�
 
 def run_query(query, params=()):
     """Подллючение к БД и выполнение запроса."""
+    query_result = 'None'
     try:
         with sqlite3.connect(DB_NAME) as conn:
             cursor = conn.cursor()
             query_result = cursor.execute(query, params)
             conn.commit()
-        return query_result
     except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
         print("Exception in user code:")
         print("-" * 60)
         traceback.print_exc(file=sys.stdout)
         print("-" * 60)
-        return 'None'
+    finally:
+        return query_result
 
 
 def main():
@@ -36,7 +37,7 @@ class Product(wx.App):
         super().__init__(redirect, filename, useBestVisual, clearSigInt)
 
     def OnInit(self):
-        self.frame = MyFrame()
+        self.frame = MyFrame()  # noqa
         self.frame.Show()
         self.SetTopWindow(self.frame)
         return True
@@ -52,7 +53,7 @@ class MyFrame(wx.Frame):
                          size=wx.Size(500, 500), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
         # Запрос на создание таблицы в БД
-        query = 'CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, price REAL)' \
+        query = 'CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, price REAL)'\
             .format(TABLE_NAME)
         run_query(query)
         # Запрос инфы по таблице(поля и др.)
@@ -260,9 +261,10 @@ class MyFrame(wx.Frame):
             self.message.Label = 'Table {} filtered'.format(TABLE_NAME)
         else:
             params = ()
-            query = 'SELECT * FROM {} ORDER BY {} {}'.format(TABLE_NAME, sort_name, sort_order) \
-                if sort_name != '' \
-                else 'SELECT * FROM {}'.format(TABLE_NAME)
+            if sort_name != '':
+                query = 'SELECT * FROM {} ORDER BY {} {}'.format(TABLE_NAME, sort_name, sort_order)
+            else:
+                query = 'SELECT * FROM {}'.format(TABLE_NAME)
             self.message.Label = 'Full table {} is displayed'.format(TABLE_NAME)
 
         # Выборка данных из базы
@@ -329,23 +331,23 @@ class MyFrame(wx.Frame):
         for row in self.grid_data.GetSelectedRows():
             sel_row = []
             color = self.grid_data.GetCellBackgroundColour(row, 0)
-            if color[1] == 255:  # добавляем только белые строки
+            if color[1] == 255:  # добавляем только не белые строки
                 for col in range(self.grid_data.NumberCols):
                     sel_row.append(self.grid_data.GetCellValue(row, col))
                 sel_list.append(tuple(sel_row))
-        # Заполнение полей ввода значениями, если выделена одна запись
-        if len(sel_list) == 1:
-            try:
+        # Сообщение, если не выделена ни одна запись
+        if len(sel_list) == 0:
+            self.message.Label = 'No selected row(select_row_get)'
+        else:
+            # Заполнение полей ввода значениями, если выделена одна запись
+            if len(sel_list) == 1:
                 self.entry_name.SetValue(sel_list[0][1])
                 self.entry_price.SetValue(sel_list[0][2])
-            except IndexError:
-                self.message.Label = 'No selected row(IndexError:select_row_get)'
-                return []
-        # Формирование списка выделенных `id`, только для вывода в `self.message`!!!
-        ids = []
-        for i in sel_list:
-            ids.append(i[0])
-        self.message.Label = 'Selected row id={}'.format(ids)
+            # Формирование списка выделенных `id`, только для вывода в `self.message`!!!
+            ids = []
+            for i in sel_list:
+                ids.append(i[0])
+            self.message.Label = 'Selected row id={}'.format(ids)
         # Возврат результата
         return sel_list
 
@@ -362,9 +364,10 @@ class MyFrame(wx.Frame):
 
     def grid_dataOnGridCellLeftClick(self, event):  # noqa
         """Очищает поля ввода/редактирования при снятии выделения."""
-        if not event.Selecting():
-            self.message.Label = 'No selected row'
+        self.grid_data.SelectRow(event.GetRow())
+        if not self.grid_data.GetSelectedRows():
             self.clear_entry()
+        self.select_row_get()
         event.Skip()
 
     def grid_dataOnGridCellRightClick(self, event):  # noqa
@@ -391,7 +394,7 @@ class MyFrame(wx.Frame):
         event.Skip()
 
     def grid_dataOnGridLabelLeftClick(self, event):  # noqa
-        """Определяет переменные поля `sort_name` и порядка `sort_order` сортировки данных в таблице `grid_data`."""
+        """Определяет переменные поля `sort_name` и порядок `sort_order` сортировки данных в таблице `grid_data`."""
         if event.GetCol() >= 0:
             if self.grid_data.IsSortingBy(event.GetCol()) and self.grid_data.IsSortOrderAscending():
                 self.sort_order = 'DESC'
@@ -406,6 +409,7 @@ class MyFrame(wx.Frame):
                 self.grid_data.SetColLabelValue(event.GetCol(), self.grid_field[event.GetCol()] + '  ^')
             self.sort_name = self.db_field[event.GetCol()]
             self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.select_row_get()
         event.Skip()
 
     def grid_dataOnGridRangeSelect(self, event):  # noqa
@@ -424,12 +428,12 @@ class MyFrame(wx.Frame):
             self.edit_click(event)
         elif event.GetKeyCode() == 4:  # Ctrl+d
             self.del_click(event)
+        self.select_row_get()
         event.Skip()
 
     def pm_setfilOnMenuSelect(self, event):  # noqa
         """Определяет переменные поля `filter_name` и значения `filter_data` для фильтрации записей,
-        отображаемых в таблице `grid_data`.
-        """
+        отображаемых в таблице `grid_data`."""
         self.filter_name = self.filter_name_tmp
         self.filter_data = self.filter_data_tmp
         self.message.Label = 'No selected row'

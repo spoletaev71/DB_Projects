@@ -14,18 +14,19 @@ TABLE_NAME = 'product'      # Наименование таблицы в БД (�
 
 def run_query(query, params=()):
     """Подллючение к БД и выполнение запроса."""
+    query_result = 'None'
     try:
         with sqlite3.connect(DB_NAME) as conn:
             cursor = conn.cursor()
             query_result = cursor.execute(query, params)
             conn.commit()
-        return query_result
     except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
         print("Exception in user code:")
         print("-" * 60)
         traceback.print_exc(file=sys.stdout)
         print("-" * 60)
-        return 'None'
+    finally:
+        return query_result
 
 
 class MyTree(ttk.Treeview):
@@ -355,7 +356,7 @@ class Product:
                 self.entry_price.insert(0, sel_list[0][2])
             except IndexError:
                 self.message['text'] = 'No selected row(IndexError:select_row_get)'
-                return []
+                sel_list = []
         # Формирование списка выделенных `id`, только для вывода в `self.message`!!!
         ids = []
         for i in sel_list:
@@ -365,7 +366,7 @@ class Product:
         return sel_list
 
     def select_head(self, event_x):
-        """Определяет переменные поля `sort_name` и порядока `sort_order` сортировки данных в таблице `Treeview`."""
+        """Определяет переменные поля `sort_name` и порядок `sort_order` сортировки данных в таблице `Treeview`."""
         column_name = self.tree.column(self.tree.identify_column(event_x))['id']
 
         if self.sort_name == column_name and self.sort_order == '':

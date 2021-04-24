@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 import keyboard
 import psycopg2
@@ -31,6 +32,7 @@ def config(filename='mydb.ini', section='postgresql'):
 
 def run_query(query_run, query_param=()):
     """ Подключение к БД и выполнение запроса """
+    query_result = 'None'
     try:
         # psycopg2.connect(database="db", user="postgres", password="*", host="127.0.0.1", port="5432")
         params = config()
@@ -46,14 +48,13 @@ def run_query(query_run, query_param=()):
                     print('-' * 85)
                 else:
                     print('Пусто')
-            # conn.commit()
-        return query_result
     except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
         print("Exception in user code:")
         print("-" * 60)
         traceback.print_exc(file=sys.stdout)
         print("-" * 60)
-        return 'None'
+    finally:
+        return query_result
 
 
 if __name__ == '__main__':
