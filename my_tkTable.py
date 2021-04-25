@@ -263,12 +263,14 @@ class Product:
             self.message['text'] = 'No selected row(IndexError:filter_set)'
             return
         self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.select_row_get()
 
     def filter_remove(self):
         """Очищает фильтр для записей отображаемых в таблице `Treeview`"""
         self.filter_name = ''
         self.filter_data = ''
         self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.select_row_get()
 
     def do_full_popup_menu(self, event_x, event_y):
         """Отображение полного контекстного меню."""
@@ -420,7 +422,7 @@ class Product:
                 run_query(query, params)
             self.clear_entry()
             self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
-            self.message['text'] = 'Record edited'
+            self.message['text'] = 'Record changed'
         else:
             self.message['text'] = 'Entry not correct!'
 

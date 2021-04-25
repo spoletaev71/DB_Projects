@@ -391,6 +391,7 @@ class MyFrame(wx.Frame):
                 self.pop_menu.Remove(self.pm_setfil)
 
         self.grid_data.PopupMenu(self.pop_menu)
+        self.select_row_get()
         event.Skip()
 
     def grid_dataOnGridLabelLeftClick(self, event):  # noqa
@@ -409,6 +410,10 @@ class MyFrame(wx.Frame):
                 self.grid_data.SetColLabelValue(event.GetCol(), self.grid_field[event.GetCol()] + '  ^')
             self.sort_name = self.db_field[event.GetCol()]
             self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        elif event.GetCol() < 0 and event.GetRow() < 0:
+            self.grid_data.SelectAll()
+        else:
+            self.grid_data.SelectRow(event.GetRow())
         self.select_row_get()
         event.Skip()
 
@@ -428,7 +433,6 @@ class MyFrame(wx.Frame):
             self.edit_click(event)
         elif event.GetKeyCode() == 4:  # Ctrl+d
             self.del_click(event)
-        self.select_row_get()
         event.Skip()
 
     def pm_setfilOnMenuSelect(self, event):  # noqa
@@ -436,7 +440,7 @@ class MyFrame(wx.Frame):
         отображаемых в таблице `grid_data`."""
         self.filter_name = self.filter_name_tmp
         self.filter_data = self.filter_data_tmp
-        self.message.Label = 'No selected row'
+        self.message.Label = 'No selected row(pm_setfilOnMenuSelect)'
         self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
         event.Skip()
 
@@ -486,7 +490,7 @@ class MyFrame(wx.Frame):
                 run_query(query, params)
             self.clear_entry()
             self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
-            self.message.Label = 'Record edited'
+            self.message.Label = 'Record changed'
         else:
             self.message.Label = 'Entry not correct!'
         event.Skip()
