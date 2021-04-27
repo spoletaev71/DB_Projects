@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
+import sqlite3
 import sys
 import tkinter as tk
 from tkinter import ttk
-import sqlite3
 import traceback
 
 # Задачи на разработку:
-# 1. Обработка множественного выбора строк с клавиатуры в таблице.
+# 1. Обработка множественного выбора строк с клавиатуры в гриде.
 
 DB_NAME = 'DataBase.db'     # Наименование БД типа `sqlite3` (если не существует, то создаётся новая)
 TABLE_NAME = 'product'      # Наименование таблицы в БД (если не существует, то создаётся новая)
 
 
 def run_query(query, params=()):
-    """Подллючение к БД и выполнение запроса."""
+    """ Подллючение к БД и выполнение запроса """
     query_result = 'None'
     try:
         with sqlite3.connect(DB_NAME) as conn:
@@ -30,12 +30,12 @@ def run_query(query, params=()):
 
 
 class MyTree(ttk.Treeview):
-    """Класс-наследник `ttk.Treeview` с возможностью подсвечивания строк цветом
+    """ Класс-наследник `ttk.Treeview` с возможностью подсвечивания строк цветом
     фона при вставке(метод `insert`), в зависимости от содержимого выводимых данных.
     Подсмотрел тут:    https://ru.stackoverflow.com/questions/1074824
     """
     def __init__(self, *args, **kwargs):
-        """Элементам с тегом even(четные) назначить цвет фона aquamarine,
+        """ Элементам с тегом even(четные) назначить цвет фона aquamarine,
          а элементам с тегом odd(нечетные) назначить цвет фона lightyellow.
         """
         super().__init__(*args, **kwargs)
@@ -44,7 +44,7 @@ class MyTree(ttk.Treeview):
         self.tag_configure('odd', background='lightyellow')
 
     def insert(self, parent_node, index, **kwargs):
-        """Назначение тега при добавлении элемента в таблицу"""
+        """ Назначение тега при добавлении элемента в грид """
         item = super().insert(parent_node, index, **kwargs)
         values = kwargs.get('values', None)
         if values:
@@ -87,13 +87,13 @@ class Product:
             self.db_field.append(row[1])        # Имена полей в БД и таблице `grid_data`
             self.db_field_type.append(row[2])   # Типы данных полей в БД
 
-        # Соответствие имен полей в БД и в таблице `Treeview`
+        # Соответствие имен полей в БД и в гриде `Treeview`
         field_name = {'id': '№', 'name': 'Наименование', 'price': 'Цена'}
 
-        # Переменные для сортировки элементов в таблице `Treeview`
+        # Переменные для сортировки элементов в гриде `Treeview`
         self.sort_name = ''
         self.sort_order = ''
-        # Переменные для фильтрации элементов в таблице `Treeview`
+        # Переменные для фильтрации элементов в гриде `Treeview`
         self.filter_name = ''
         self.filter_data = ''
         self.x = 0
@@ -116,34 +116,34 @@ class Product:
         self.message = tk.Label(text='', bg='lightblue', font='tahoma 11')
         self.message.pack(padx=10, pady=10, fill=tk.X)
 
-        # Стилистика отображеня таблицы `Treeview`
+        # Стилистика отображеня грида `Treeview`
         self.style = ttk.Style()
         self.style.map('Treeview', foreground=fixed_map('foreground'), background=fixed_map('background'))
         self.style.configure("Treeview", font='arial 11')
         self.style.configure('Treeview.Heading', font='tahoma 12', foreground='blue')
 
-        # Таблица `Treeview`
+        # Грид `Treeview`
         self.tree = MyTree(columns=self.db_field, displaycolumns=([i for i in range(len(self.db_field))]),
                            show='headings', padding=(0, 0, 16, 0), selectmode='extended', takefocus=True)
-        # Полоса прокрутки таблицы `Treeview`
+        # Полоса прокрутки грида `Treeview`
         xscroll = ttk.Scrollbar(self.tree, orient=tk.HORIZONTAL, command=self.tree.xview)
         yscroll = ttk.Scrollbar(self.tree, orient=tk.VERTICAL, command=self.tree.yview)
         self.tree.config(yscrollcommand=yscroll.set)
-        # Столбцы таблицы фиксированного размера `Treeview`
+        # Столбцы грида фиксированного размера `Treeview`
         self.tree.column(self.db_field[0], width=60, stretch=False, anchor=tk.CENTER)
         self.tree.column(self.db_field[1], width=200, anchor=tk.W)
         self.tree.column(self.db_field[2], width=140, stretch=False, anchor=tk.E)
-        # Шапка таблицы `Treeview`
+        # Шапка грида `Treeview`
         for f in self.db_field:
             self.tree.heading(f, text=field_name.get(f), anchor=tk.CENTER)
-        # Полное контекстное меню для заполненной части таблицы `Treeview`
+        # Полное контекстное меню для заполненной части грида `Treeview`
         self.popup_menu_filter_full = tk.Menu(self.tree, tearoff=0)
         self.popup_menu_filter_full.add_command(label="Set filter", command=self.filter_set)
         self.popup_menu_filter_full.add_command(label="Clear filter", command=self.filter_remove)
-        # Урезаное контекстное меню для пустой части таблицы `Treeview`
+        # Урезаное контекстное меню для пустой части грида `Treeview`
         self.popup_menu_filter_clear = tk.Menu(self.tree, tearoff=0)
         self.popup_menu_filter_clear.add_command(label="Clear filter", command=self.filter_remove)
-        # Обработка действий мыши и клавиш в таблице
+        # Обработка действий мыши и клавиш в гриде
         self.tree.bind('<ButtonRelease-1>', self.click_tree)
         self.tree.bind("<Button-3>", self.click_tree)
         self.tree.bind('<space>', self.select_one)
@@ -166,15 +166,20 @@ class Product:
         bt_edt.pack(side=tk.LEFT, expand=1, padx=20)
         bt_del.pack(side=tk.RIGHT, padx=20)
 
-        # Отображение таблицы
+        # Отображение грида
         self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
 
+    def grid_refresh(self):
+        """ Обновление грида """
+        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.select_row_get()
+
     def view_rec(self, sort_name='', sort_order='', filter_name='', filter_data=''):
-        """Отображение данных в таблице `Treeview`"""
+        """ Отображение данных в гриде `Treeview` """
         # Очистка `treeview`
         for i in self.tree.get_children():
             self.tree.delete(i)
-        # Запросы к БД с фильтрацией и сортировкой записей таблицы `Treeview`
+        # Запросы к БД с фильтрацией и сортировкой записей грида `Treeview`
         if filter_name != '':
             params = (filter_data,)
             if sort_name != '':
@@ -192,21 +197,25 @@ class Product:
 
         # Выборка данных из базы
         db_rows = run_query(query, params)
-        # Заполнение таблицы
+        # Заполнение грида
         if db_rows:
-            for row in db_rows:
-                self.tree.insert('', tk.END, values=row)
-            records = self.tree.get_children()
-            if len(records) > 0:
-                self.tree.focus(records[0])
-                # Итоги
-                self.total_line('sum', 2, 1, 'Итого:')
-                self.total_line('qty.', 0)
+            self.data_output(db_rows)
         else:
             self.message['text'] = 'Query error DB: {}, table: {}.'.format(DB_NAME, TABLE_NAME)
 
+    def data_output(self, db_rows):
+        """ Заполнение грида """
+        for row in db_rows:
+            self.tree.insert('', tk.END, values=row)
+        records = self.tree.get_children()
+        if len(records) > 0:
+            self.tree.focus(records[0])
+            # Итоги
+            self.total_line('sum', 2, 1, 'Итого:')
+            self.total_line('qty.', 0)
+
     def total_line(self, func_total, column_total, column_comment=None, text_comment=None):
-        """Добавляет в конец таблицы итоги по указанному столбцу.
+        """ Добавляет в конец грида итоги по указанному столбцу.
          Повторный запуск с другой функцией и по другому столбцу дополнит итоговую строку.
 
         Args:
@@ -220,7 +229,7 @@ class Product:
                 то комментарий не выводится.
         """
         if self.db_field_type[column_total] in ('INTEGER', 'REAL'):
-            # Если уже есть итоги, то запоминаем и удаляем из таблицы
+            # Если уже есть итоги, то запоминаем и удаляем из грида
             if self.tree.tag_has('total'):
                 values_total = list(self.tree.item(self.tree.tag_has('total'), 'values'))
                 self.tree.delete(self.tree.tag_has('total'))
@@ -244,16 +253,16 @@ class Product:
                     values_total[column_total] = str(summa)
             else:
                 return
-            # Выводим итоги в таблицу
+            # Выводим итоги в грид
             self.tree.insert('', tk.END, values=tuple(values_total))
 
     def clear_entry(self):
-        """Очищает поля ввода/редактирования."""
+        """ Очищает поля ввода/редактирования """
         self.entry_name.delete(0, tk.END)
         self.entry_price.delete(0, tk.END)
 
     def filter_set(self):
-        """Определяет фильтр для записей отображаемых в таблице `Treeview`"""
+        """ Определяет фильтр для записей отображаемых в гриде `Treeview` """
         sel_list = self.select_row_get()
         try:
             column_number = int(self.tree.identify_column(self.x).replace('#', '')) - 1
@@ -262,46 +271,44 @@ class Product:
         except IndexError:
             self.message['text'] = 'No selected row(IndexError:filter_set)'
             return
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
-        self.select_row_get()
+        self.grid_refresh()
 
     def filter_remove(self):
-        """Очищает фильтр для записей отображаемых в таблице `Treeview`"""
+        """ Очищает фильтр для записей отображаемых в гриде `Treeview` """
         self.filter_name = ''
         self.filter_data = ''
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
-        self.select_row_get()
+        self.grid_refresh()
 
     def do_full_popup_menu(self, event_x, event_y):
-        """Отображение полного контекстного меню."""
+        """ Отображение полного контекстного меню """
         try:
             self.popup_menu_filter_full.post(event_x, event_y)
         finally:
             self.popup_menu_filter_full.grab_release()
 
     def do_short_popup_menu(self, event_x, event_y):
-        """Отображение урезаного контекстного меню."""
+        """ Отображение урезаного контекстного меню """
         try:
             self.popup_menu_filter_clear.post(event_x, event_y)
         finally:
             self.popup_menu_filter_clear.grab_release()
 
     def select_one(self, event):
-        """Выбор записи находящейся в фокусе."""
+        """ Выбор записи находящейся в фокусе """
         self.tree = event.widget
         self.tree.selection_set(self.tree.focus())
         self.select_row_get()
 
     def select_multiple(self, event):   # TODO
-        """Выбор нескольких записей. !!! НЕДОПИЛЕНО !!!"""
+        """ Выбор нескольких записей. !!! НЕДОПИЛЕНО !!! """
         self.tree = event.widget
         sel_list = list(self.tree.selection())
         sel_list.append(self.tree.focus())
         self.tree.selection_set(tuple(sel_list))
         self.select_row_get()
 
-    def click_tree(self, event):    # noqa
-        """Определяет выбираемое действие в таблице `Treeview`: выделение записей, сортировка или вызов меню фильтрации.
+    def click_tree(self, event):
+        """ Определяет выбираемое действие в гриде `Treeview`: выделение записей, сортировка или вызов меню фильтрации
 
         1. Если нажатие в области данных (`cell`), то выполнение передается функции `select_row_get()`
         для определения выделения либо отрисовка полного контекстного меню фильтрации (`popup_menu_filter_full`)
@@ -339,10 +346,10 @@ class Product:
             self.message['text'] = 'No select row'
 
     def select_row_get(self):
-        """Определяет список выделенных записей в таблице `Treeview`.
+        """ Определяет список выделенных записей в гриде `Treeview`
 
         return [(row_values), ...]
-            Возвращает список с кортежами данных выделенных строк в таблице `Treeview`.
+            Возвращает список с кортежами данных выделенных строк в гриде `Treeview`
         """
         # Очистка списка и полей формы
         sel_list = []
@@ -368,7 +375,7 @@ class Product:
         return sel_list
 
     def select_head(self, event_x):
-        """Определяет переменные поля `sort_name` и порядок `sort_order` сортировки данных в таблице `Treeview`."""
+        """ Определяет переменные поля `sort_name` и порядок `sort_order` сортировки данных в гриде `Treeview` """
         column_name = self.tree.column(self.tree.identify_column(event_x))['id']
 
         if self.sort_name == column_name and self.sort_order == '':
@@ -385,7 +392,7 @@ class Product:
         self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
 
     def record_add(self, event=None):   # noqa
-        """Добавление данных в таблицу БД"""
+        """ Добавление данных в таблицу БД """
         try:
             price = float(self.entry_price.get().replace(',', '.'))
         except ValueError:
@@ -405,7 +412,7 @@ class Product:
             self.message['text'] = 'Entry not correct!'
 
     def record_edit(self, event=None):  # noqa
-        """Изменение данных в таблице БД"""
+        """ Изменение данных в таблице БД """
         try:
             price = float(self.entry_price.get().replace(',', '.'))
         except ValueError:

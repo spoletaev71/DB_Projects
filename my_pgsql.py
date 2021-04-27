@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import sys
+from configparser import ConfigParser
 import keyboard
 import psycopg2
+import sys
 import traceback
-from configparser import ConfigParser
 
 
 DB_NAME = 'mydb'  # БД PostgreSQL
@@ -42,12 +42,7 @@ def run_query(query_run, query_param=()):
             query_result = cursor.execute(query_run, query_param)
             if 'SELECT' in query_run:
                 query_result = cursor.fetchall()
-                if query_result:
-                    for row in query_result:
-                        print("| {0:5d} | {1:50s} | {2:20s} |".format(row[0], row[1], row[2]))
-                    print('-' * 85)
-                else:
-                    print('Пусто')
+                view_select(query_result)
     except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
         print("Exception in user code:")
         print("-" * 60)
@@ -57,17 +52,27 @@ def run_query(query_run, query_param=()):
         return query_result
 
 
+def view_select(query_result):
+    """ Вывод данных запроса в консоль """
+    if query_result:
+        for row in query_result:
+            print("| {0:5d} | {1:50s} | {2:20s} |".format(row[0], row[1], row[2]))
+        print('-' * 85)
+    else:
+        print('Пусто')
+
+
 if __name__ == '__main__':
     # SELECT datname FROM pg_database; # посмотреть список БД
     # SELECT tablename FROM pg_tables WHERE schemaname='public'; # посмотреть список таблиц в БД
 
-    query = (
+    query = [
         # Удаляем таблицу в БД, если есть(только для PostgreSQL version >9.1)
         "DROP TABLE IF EXISTS {} CASCADE".format(TABLE_NAME),
         # Создаем таблицу в БД, если нету(только для PostgreSQL version >9.1)
         "CREATE TABLE IF NOT EXISTS {} "
         "(p_id SERIAL PRIMARY KEY, name VARCHAR(100) NOT NULL, price MONEY NOT NULL DEFAULT 0)".format(TABLE_NAME),
-        # Создаем хранимые процедуры
+        # Создаем хранимые процедуры:
         # Добавить запись
         "CREATE OR REPLACE PROCEDURE product_add(new_name VARCHAR(100), new_price MONEY DEFAULT 0) \
         LANGUAGE 'sql' \
@@ -89,7 +94,7 @@ if __name__ == '__main__':
             DELETE FROM {} WHERE p_id=new_p_id; \
         $BODY$;" \
         .format(TABLE_NAME)
-    )
+    ]
     for q in query:
         run_query(q)
 
@@ -111,12 +116,12 @@ if __name__ == '__main__':
         print(' Выполнено.\n Для очистки БД от изменений, нажмите клавишу "c"\n Для выхода "q"')
         if keyboard.read_key() == "c":
             # Чистим все что натворили в БД(только для PostgreSQL version >9.1)
-            query = (
+            query = [
                 "DROP TABLE IF EXISTS {} CASCADE".format(TABLE_NAME),
                 "DROP PROCEDURE IF EXISTS product_add CASCADE",
                 "DROP PROCEDURE IF EXISTS product_edit CASCADE",
                 "DROP PROCEDURE IF EXISTS product_del CASCADE"
-            )
+            ]
             for q in query:
                 run_query(q)
         elif keyboard.is_pressed("q"):

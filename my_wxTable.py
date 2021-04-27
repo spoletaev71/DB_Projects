@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-import wx
-import wx.xrc
-import wx.grid
 import sys
 import sqlite3
 import traceback
+import wx
+import wx.grid
+import wx.xrc
 
 DB_NAME = 'DataBase.db'     # Наименование БД типа `sqlite3` (если не существует, то создаётся новая)
 TABLE_NAME = 'product'      # Наименование таблицы в БД (если не существует, то создаётся новая)
 
 
 def run_query(query, params=()):
-    """Подллючение к БД и выполнение запроса."""
+    """ Подллючение к БД и выполнение запроса """
     query_result = 'None'
     try:
         with sqlite3.connect(DB_NAME) as conn:
@@ -63,15 +63,15 @@ class MyFrame(wx.Frame):
         self.db_field = []
         self.db_field_type = []
         for row in db_rows:
-            self.db_field.append(row[1])  # Имена полей в БД и таблице `grid_data`
+            self.db_field.append(row[1])  # Имена полей в БД и гриде `grid_data`
             self.db_field_type.append(row[2])  # Типы данных полей в БД
 
-        # Имена полей в шапке таблицы `grid_data`
+        # Имена полей в шапке грида `grid_data`
         self.grid_field = ['№', 'Наименование', 'Цена']
-        # Переменные для сортировки элементов в таблице `grid_data`
+        # Переменные для сортировки элементов в гриде `grid_data`
         self.sort_name = ''
         self.sort_order = ''
-        # Переменные для фильтрации элементов в таблице `grid_data`
+        # Переменные для фильтрации элементов в гриде `grid_data`
         self.filter_name_tmp = ''
         self.filter_data_tmp = ''
         self.filter_name = ''
@@ -134,7 +134,7 @@ class MyFrame(wx.Frame):
         self.message.SetMaxSize(wx.Size(-1, 35))
         vszr_global.Add(self.message, 0, wx.ALL | wx.EXPAND, 5)
 
-        # Формируем таблицу `grid_data`
+        # Формируем грид `grid_data`
         self.grid_data = wx.grid.Grid(self.pnl_frame, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.DOUBLE_BORDER)
 
         #   Grid
@@ -242,11 +242,11 @@ class MyFrame(wx.Frame):
         self.btn_edit.Bind(wx.EVT_BUTTON, self.edit_click)
         self.btn_del.Bind(wx.EVT_BUTTON, self.del_click)
 
-        # Отображение таблицы
+        # Отображение грида
         self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
 
     def view_rec(self, sort_name='', sort_order='', filter_name='', filter_data=''):
-        """Отображение данных в таблице `grid_data`"""
+        """Отображение данных в гриде `grid_data`"""
         # Очистка `grid_data`
         if self.grid_data.GetNumberRows() > 0:
             self.grid_data.DeleteRows(0, self.grid_data.GetNumberRows())
@@ -269,7 +269,7 @@ class MyFrame(wx.Frame):
 
         # Выборка данных из базы
         db_rows = run_query(query, params)
-        # Заполнение таблицы
+        # Заполнение грида
         if db_rows:
             sum_col = [None for _ in range(self.grid_data.NumberCols)]
             r = 0
@@ -296,10 +296,10 @@ class MyFrame(wx.Frame):
             self.message.label = 'Query error DB: {}, table: {}.'.format(DB_NAME, TABLE_NAME)
 
     def total_line(self, r=0, sum_col=None):
-        """Добавляет в конец таблицы итоги исходя из переданных данных.
+        """Добавляет в конец грида итоги исходя из переданных данных.
 
         Args:
-            r (int): количество строк в таблице.
+            r (int): количество строк в гриде.
             sum_col (list): список с итоговыми данными по столбцам.
         """
         if r > 0 and any(sum_col):
@@ -319,10 +319,10 @@ class MyFrame(wx.Frame):
         self.entry_price.Clear()
 
     def select_row_get(self):
-        """Определяет список выделенных записей в таблице `grid_data`.
+        """Определяет список выделенных записей грида `grid_data`.
 
         return [(row_values), ...]
-            Возвращает список с кортежами данных выделенных строк в таблице `grid_data`.
+            Возвращает список с кортежами данных выделенных строк грида `grid_data`.
         """
         # Очистка списка и полей формы
         sel_list = []
@@ -395,7 +395,7 @@ class MyFrame(wx.Frame):
         event.Skip()
 
     def grid_dataOnGridLabelLeftClick(self, event):  # noqa
-        """Определяет переменные поля `sort_name` и порядок `sort_order` сортировки данных в таблице `grid_data`."""
+        """Определяет переменные поля `sort_name` и порядок `sort_order` сортировки данных грида `grid_data`."""
         if event.GetCol() >= 0:
             if self.grid_data.IsSortingBy(event.GetCol()) and self.grid_data.IsSortOrderAscending():
                 self.sort_order = 'DESC'
@@ -437,7 +437,7 @@ class MyFrame(wx.Frame):
 
     def pm_setfilOnMenuSelect(self, event):  # noqa
         """Определяет переменные поля `filter_name` и значения `filter_data` для фильтрации записей,
-        отображаемых в таблице `grid_data`."""
+        отображаемых в гриде `grid_data`."""
         self.filter_name = self.filter_name_tmp
         self.filter_data = self.filter_data_tmp
         self.message.Label = 'No selected row(pm_setfilOnMenuSelect)'
@@ -445,7 +445,7 @@ class MyFrame(wx.Frame):
         event.Skip()
 
     def pm_clrfilOnMenuSelect(self, event):  # noqa
-        """Очищает переменные фильтра для записей отображаемых в таблице `grid_data`."""
+        """Очищает переменные фильтра для записей отображаемых в гриде `grid_data`."""
         self.filter_name = ''
         self.filter_data = ''
         self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
