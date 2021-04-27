@@ -13,7 +13,7 @@ TABLE_NAME = 'product'      # Наименование таблицы в БД (�
 
 
 def run_query(query, params=()):
-    """ Подллючение к БД и выполнение запроса """
+    """ Подключение к БД и выполнение запроса """
     query_result = 'None'
     try:
         with sqlite3.connect(DB_NAME) as conn:
@@ -61,8 +61,8 @@ class Product:
     def __init__(self, window):
 
         def fixed_map(option):
-            return [elm for elm in self.style.map('Treeview', query_opt=option) if
-                    elm[:-1] != ('!disabled', '!selected')]
+            return [elm for elm in self.style.map('Treeview', query_opt=option)
+                    if elm[:-1] != ('!disabled', '!selected')]
 
         self.window = window
         self.window.geometry('500x500+800+10')
@@ -84,16 +84,16 @@ class Product:
         self.db_field = []
         self.db_field_type = []
         for row in db_rows:
-            self.db_field.append(row[1])        # Имена полей в БД и таблице `grid_data`
+            self.db_field.append(row[1])        # Имена полей в БД
             self.db_field_type.append(row[2])   # Типы данных полей в БД
 
-        # Соответствие имен полей в БД и в гриде `Treeview`
+        # Соответствие имен полей в БД и в гриде
         field_name = {'id': '№', 'name': 'Наименование', 'price': 'Цена'}
 
-        # Переменные для сортировки элементов в гриде `Treeview`
+        # Переменные для сортировки элементов в гриде
         self.sort_name = ''
         self.sort_order = ''
-        # Переменные для фильтрации элементов в гриде `Treeview`
+        # Переменные для фильтрации элементов в гриде
         self.filter_name = ''
         self.filter_data = ''
         self.x = 0
@@ -116,70 +116,62 @@ class Product:
         self.message = tk.Label(text='', bg='lightblue', font='tahoma 11')
         self.message.pack(padx=10, pady=10, fill=tk.X)
 
-        # Стилистика отображеня грида `Treeview`
+        # Стилистика отображеня грида
         self.style = ttk.Style()
         self.style.map('Treeview', foreground=fixed_map('foreground'), background=fixed_map('background'))
         self.style.configure("Treeview", font='arial 11')
         self.style.configure('Treeview.Heading', font='tahoma 12', foreground='blue')
 
-        # Грид `Treeview`
-        self.tree = MyTree(columns=self.db_field, displaycolumns=([i for i in range(len(self.db_field))]),
-                           show='headings', padding=(0, 0, 16, 0), selectmode='extended', takefocus=True)
-        # Полоса прокрутки грида `Treeview`
-        xscroll = ttk.Scrollbar(self.tree, orient=tk.HORIZONTAL, command=self.tree.xview)
-        yscroll = ttk.Scrollbar(self.tree, orient=tk.VERTICAL, command=self.tree.yview)
-        self.tree.config(yscrollcommand=yscroll.set)
-        # Столбцы грида фиксированного размера `Treeview`
-        self.tree.column(self.db_field[0], width=60, stretch=False, anchor=tk.CENTER)
-        self.tree.column(self.db_field[1], width=200, anchor=tk.W)
-        self.tree.column(self.db_field[2], width=140, stretch=False, anchor=tk.E)
-        # Шапка грида `Treeview`
+        # Грид из `Treeview`
+        self.grid_data = MyTree(columns=self.db_field, displaycolumns=([i for i in range(len(self.db_field))]),
+                                show='headings', padding=(0, 0, 16, 0), selectmode='extended', takefocus=True)
+        # Полоса прокрутки грида
+        xscroll = ttk.Scrollbar(self.grid_data, orient=tk.HORIZONTAL, command=self.grid_data.xview)
+        yscroll = ttk.Scrollbar(self.grid_data, orient=tk.VERTICAL, command=self.grid_data.yview)
+        self.grid_data.config(yscrollcommand=yscroll.set)
+        # Столбцы грида фиксированного размера
+        self.grid_data.column(self.db_field[0], width=60, stretch=False, anchor=tk.CENTER)
+        self.grid_data.column(self.db_field[1], width=200, anchor=tk.W)
+        self.grid_data.column(self.db_field[2], width=140, stretch=False, anchor=tk.E)
+        # Шапка грида
         for f in self.db_field:
-            self.tree.heading(f, text=field_name.get(f), anchor=tk.CENTER)
-        # Полное контекстное меню для заполненной части грида `Treeview`
-        self.popup_menu_filter_full = tk.Menu(self.tree, tearoff=0)
-        self.popup_menu_filter_full.add_command(label="Set filter", command=self.filter_set)
-        self.popup_menu_filter_full.add_command(label="Clear filter", command=self.filter_remove)
-        # Урезаное контекстное меню для пустой части грида `Treeview`
-        self.popup_menu_filter_clear = tk.Menu(self.tree, tearoff=0)
-        self.popup_menu_filter_clear.add_command(label="Clear filter", command=self.filter_remove)
+            self.grid_data.heading(f, text=field_name.get(f), anchor=tk.CENTER)
+        # Полное контекстное меню для заполненной части грида
+        self.popup_menu_filter_full = tk.Menu(self.grid_data, tearoff=0)
+        self.popup_menu_filter_full.add_command(label="Set filter", command=self.set_filter)
+        self.popup_menu_filter_full.add_command(label="Clear filter", command=self.clear_filter)
+        # Урезаное контекстное меню для пустой части грида
+        self.popup_menu_filter_clear = tk.Menu(self.grid_data, tearoff=0)
+        self.popup_menu_filter_clear.add_command(label="Clear filter", command=self.clear_filter)
         # Обработка действий мыши и клавиш в гриде
-        self.tree.bind('<ButtonRelease-1>', self.click_tree)
-        self.tree.bind("<Button-3>", self.click_tree)
-        self.tree.bind('<space>', self.select_one)
-        self.tree.bind('<Control-space>', self.select_multiple)     # TODO
+        self.grid_data.bind('<ButtonRelease-1>', self.click_grid)
+        self.grid_data.bind("<Button-3>", self.click_grid)
+        self.grid_data.bind('<space>', self.select_one)
+        self.grid_data.bind('<Control-space>', self.select_multiple)     # TODO
         #
-        self.tree.pack(padx=10, expand=1, fill=tk.BOTH)
+        self.grid_data.pack(padx=10, expand=1, fill=tk.BOTH)
         xscroll.pack(side=tk.BOTTOM, fill=tk.X)
         yscroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Фрейм с кнопками редактирования
         fr_but = tk.Frame()
         fr_but.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
-        bt_add = tk.Button(fr_but, text='Add', width=8, font='courier 12', command=self.record_add)
-        bt_edt = tk.Button(fr_but, text='Edit', width=8, font='courier 12', command=self.record_edit)
-        bt_del = tk.Button(fr_but, text='Del', width=8, font='courier 12', command=self.record_delete)
-        bt_add.bind('<Return>', self.record_add)
-        bt_edt.bind('<Return>', self.record_edit)
-        bt_del.bind('<Return>', self.record_delete)
+        bt_add = tk.Button(fr_but, text='Add', width=8, font='courier 12', command=self.add_record)
+        bt_edt = tk.Button(fr_but, text='Edit', width=8, font='courier 12', command=self.edit_record)
+        bt_del = tk.Button(fr_but, text='Del', width=8, font='courier 12', command=self.del_record)
+        bt_add.bind('<Return>', self.add_record)
+        bt_edt.bind('<Return>', self.edit_record)
+        bt_del.bind('<Return>', self.del_record)
         bt_add.pack(side=tk.LEFT, padx=20)
         bt_edt.pack(side=tk.LEFT, expand=1, padx=20)
         bt_del.pack(side=tk.RIGHT, padx=20)
 
         # Отображение грида
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.refresh_grid()
 
-    def grid_refresh(self):
-        """ Обновление грида """
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
-        self.select_row_get()
-
-    def view_rec(self, sort_name='', sort_order='', filter_name='', filter_data=''):
-        """ Отображение данных в гриде `Treeview` """
-        # Очистка `treeview`
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-        # Запросы к БД с фильтрацией и сортировкой записей грида `Treeview`
+    def build_query_view(self, sort_name='', sort_order='', filter_name='', filter_data=''):
+        """ Отображение данных в гриде """
+        # Запросы к БД с фильтрацией и сортировкой записей грида
         if filter_name != '':
             params = (filter_data,)
             if sort_name != '':
@@ -194,22 +186,20 @@ class Product:
                 if sort_name != '' \
                 else 'SELECT * FROM {}'.format(TABLE_NAME)
             self.message['text'] = 'Full table {} is displayed'.format(TABLE_NAME)
+        return query, params
 
-        # Выборка данных из базы
-        db_rows = run_query(query, params)
-        # Заполнение грида
-        if db_rows:
-            self.data_output(db_rows)
-        else:
-            self.message['text'] = 'Query error DB: {}, table: {}.'.format(DB_NAME, TABLE_NAME)
+    def clear_grid(self):
+        # Очистка грида
+        for i in self.grid_data.get_children():
+            self.grid_data.delete(i)
 
     def data_output(self, db_rows):
         """ Заполнение грида """
         for row in db_rows:
-            self.tree.insert('', tk.END, values=row)
-        records = self.tree.get_children()
+            self.grid_data.insert('', tk.END, values=row)
+        records = self.grid_data.get_children()
         if len(records) > 0:
-            self.tree.focus(records[0])
+            self.grid_data.focus(records[0])
             # Итоги
             self.total_line('sum', 2, 1, 'Итого:')
             self.total_line('qty.', 0)
@@ -230,12 +220,12 @@ class Product:
         """
         if self.db_field_type[column_total] in ('INTEGER', 'REAL'):
             # Если уже есть итоги, то запоминаем и удаляем из грида
-            if self.tree.tag_has('total'):
-                values_total = list(self.tree.item(self.tree.tag_has('total'), 'values'))
-                self.tree.delete(self.tree.tag_has('total'))
-                items = self.tree.get_children()
+            if self.grid_data.tag_has('total'):
+                values_total = list(self.grid_data.item(self.grid_data.tag_has('total'), 'values'))
+                self.grid_data.delete(self.grid_data.tag_has('total'))
+                items = self.grid_data.get_children()
             else:                                               # Иначе формируем новые
-                items = self.tree.get_children()
+                items = self.grid_data.get_children()
                 values_total = ['' for _ in items[0]]
             # Запоминаем комментарий, если есть
             if column_comment and text_comment:
@@ -246,7 +236,7 @@ class Product:
             elif func_total == 'avg' or func_total == 'sum':
                 summa = 0
                 for item in items:
-                    summa += float(self.tree.item(item, 'values')[column_total])
+                    summa += float(self.grid_data.item(item, 'values')[column_total])
                 if func_total == 'avg':     # average
                     values_total[column_total] = str(round(summa / len(items), 2)) if len(items) > 0 else '-'
                 elif func_total == 'sum':
@@ -254,30 +244,47 @@ class Product:
             else:
                 return
             # Выводим итоги в грид
-            self.tree.insert('', tk.END, values=tuple(values_total))
+            self.grid_data.insert('', tk.END, values=tuple(values_total))
+
+    def view_grid(self, query, params):
+        # Выборка данных из базы
+        db_rows = run_query(query, params)
+        self.clear_grid()
+        # Заполнение грида
+        if db_rows:
+            self.data_output(db_rows)
+        else:
+            self.message['text'] = 'Query error DB: {}, table: {}.'.format(DB_NAME, TABLE_NAME)
+
+    def refresh_grid(self):
+        """ Обновление грида """
+        query, params = self.build_query_view(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.view_grid(query, params)
 
     def clear_entry(self):
         """ Очищает поля ввода/редактирования """
         self.entry_name.delete(0, tk.END)
         self.entry_price.delete(0, tk.END)
 
-    def filter_set(self):
-        """ Определяет фильтр для записей отображаемых в гриде `Treeview` """
+    def set_filter(self):
+        """ Определяет фильтр для записей отображаемых в гриде """
         sel_list = self.select_row_get()
         try:
-            column_number = int(self.tree.identify_column(self.x).replace('#', '')) - 1
-            self.filter_name = self.tree.column(self.tree.identify_column(self.x))['id']
+            column_number = int(self.grid_data.identify_column(self.x).replace('#', '')) - 1
+            self.filter_name = self.grid_data.column(self.grid_data.identify_column(self.x))['id']
             self.filter_data = sel_list[0][column_number]
         except IndexError:
             self.message['text'] = 'No selected row(IndexError:filter_set)'
             return
-        self.grid_refresh()
+        self.refresh_grid()
+        self.select_row_get()
 
-    def filter_remove(self):
-        """ Очищает фильтр для записей отображаемых в гриде `Treeview` """
+    def clear_filter(self):
+        """ Очищает фильтр для записей отображаемых в гриде """
         self.filter_name = ''
         self.filter_data = ''
-        self.grid_refresh()
+        self.refresh_grid()
+        self.select_row_get()
 
     def do_full_popup_menu(self, event_x, event_y):
         """ Отображение полного контекстного меню """
@@ -295,39 +302,39 @@ class Product:
 
     def select_one(self, event):
         """ Выбор записи находящейся в фокусе """
-        self.tree = event.widget
-        self.tree.selection_set(self.tree.focus())
+        self.grid_data = event.widget
+        self.grid_data.selection_set(self.grid_data.focus())
         self.select_row_get()
 
     def select_multiple(self, event):   # TODO
         """ Выбор нескольких записей. !!! НЕДОПИЛЕНО !!! """
-        self.tree = event.widget
-        sel_list = list(self.tree.selection())
-        sel_list.append(self.tree.focus())
-        self.tree.selection_set(tuple(sel_list))
+        self.grid_data = event.widget
+        sel_list = list(self.grid_data.selection())
+        sel_list.append(self.grid_data.focus())
+        self.grid_data.selection_set(tuple(sel_list))
         self.select_row_get()
 
-    def click_tree(self, event):
-        """ Определяет выбираемое действие в гриде `Treeview`: выделение записей, сортировка или вызов меню фильтрации
+    def click_grid(self, event):
+        """ Определяет выбираемое действие в гриде: выделение записей, сортировка или вызов меню фильтрации
 
         1. Если нажатие в области данных (`cell`), то выполнение передается функции `select_row_get()`
-        для определения выделения либо отрисовка полного контекстного меню фильтрации (`popup_menu_filter_full`)
+        для определения выделения либо отрисовка полного контекстного меню фильтрации (`do_full_popup_menu`)
         для установки либо отмены фильтра.
 
-        2. Если нажатие в пустой области (`tree`), то выполнение передается функции `select_row_get()`
-        для определения выделения либо отрисовка урезанного контекстного меню фильтрациии (`popup_menu_filter_clear`)
+        2. Если нажатие в пустой области (`grid_data`), то выполнение передается функции `select_row_get()`
+        для определения выделения либо отрисовка урезанного контекстного меню фильтрациии (`do_short_popup_menu`)
         для возможности отключения фильтра.
 
         3. Если нажатие в области заголовка (`heading`), то выполнение передается функции select_head()
         для определения поля сортировки по координате `event.x`.
 
-        4. Если нажатие в пустой области (`nothing` или `tree`), то только отрисовка урезанного контекстного
-        меню фильтрациии (`popup_menu_filter_clear`) для возможности отключения фильтра.
+        4. Если нажатие в пустой области (`nothing` или `grid_data`), то только отрисовка урезанного контекстного
+        меню фильтрациии (`do_short_popup_menu`) для возможности отключения фильтра.
         """
-        region = self.tree.identify_region(event.x, event.y)
+        region = self.grid_data.identify_region(event.x, event.y)
         if region == 'cell':  # Область данных
             if event.num == 3:  # Только для правой кнопки мыши:
-                self.tree.selection_set(self.tree.identify_row(event.y))  # выделение строки
+                self.grid_data.selection_set(self.grid_data.identify_row(event.y))  # выделение строки
                 self.x = event.x  # сохранение `x` для определения столбца
                 self.do_full_popup_menu(event.x_root, event.y_root)
             self.select_row_get()
@@ -338,7 +345,7 @@ class Product:
                 self.do_short_popup_menu(event.x_root, event.y_root)
         elif region == 'heading':  # Область заголовков
             if event.num == 1:
-                self.select_head(event.x)
+                self.click_head(event.x)
         elif region == 'nothing':  # Пустая область ниже данных
             if event.num == 3:
                 self.do_short_popup_menu(event.x_root, event.y_root)
@@ -346,18 +353,18 @@ class Product:
             self.message['text'] = 'No select row'
 
     def select_row_get(self):
-        """ Определяет список выделенных записей в гриде `Treeview`
+        """ Определяет список выделенных записей в гриде
 
         return [(row_values), ...]
-            Возвращает список с кортежами данных выделенных строк в гриде `Treeview`
+            Возвращает список с кортежами данных выделенных строк в гриде
         """
         # Очистка списка и полей формы
         sel_list = []
         self.clear_entry()
         # Формирование списка выделенных строк
-        for i in self.tree.selection():
-            if not self.tree.tag_has('total', i):
-                sel_list.append(self.tree.item(i, 'values'))
+        for i in self.grid_data.selection():
+            if not self.grid_data.tag_has('total', i):
+                sel_list.append(self.grid_data.item(i, 'values'))
         # Заполнение полей ввода значениями, если выделена одна запись
         if len(sel_list) == 1:
             try:
@@ -374,24 +381,24 @@ class Product:
         # Возврат результата
         return sel_list
 
-    def select_head(self, event_x):
-        """ Определяет переменные поля `sort_name` и порядок `sort_order` сортировки данных в гриде `Treeview` """
-        column_name = self.tree.column(self.tree.identify_column(event_x))['id']
+    def click_head(self, event_x):
+        """ Определяет переменные поля `sort_name` и порядок `sort_order` сортировки данных в гриде """
+        column_name = self.grid_data.column(self.grid_data.identify_column(event_x))['id']
 
         if self.sort_name == column_name and self.sort_order == '':
             if self.sort_order == '':
                 self.sort_order = 'DESC'
-                self.tree.heading(column_name, image=self.arrow_down)
+                self.grid_data.heading(column_name, image=self.arrow_down)
         else:
             self.sort_order = ''
             if self.sort_name != '':
-                self.tree.heading(self.sort_name, image='')
-            self.tree.heading(column_name, image=self.arrow_up)
+                self.grid_data.heading(self.sort_name, image='')
+            self.grid_data.heading(column_name, image=self.arrow_up)
 
         self.sort_name = column_name
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.refresh_grid()
 
-    def record_add(self, event=None):   # noqa
+    def add_record(self, event=None):   # noqa
         """ Добавление данных в таблицу БД """
         try:
             price = float(self.entry_price.get().replace(',', '.'))
@@ -406,12 +413,13 @@ class Product:
             params = (name, price)
             run_query(query, params)
             self.clear_entry()
-            self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+#            self.build_query_view(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+            self.refresh_grid()
             self.message['text'] = 'Record added'
         else:
             self.message['text'] = 'Entry not correct!'
 
-    def record_edit(self, event=None):  # noqa
+    def edit_record(self, event=None):  # noqa
         """ Изменение данных в таблице БД """
         try:
             price = float(self.entry_price.get().replace(',', '.'))
@@ -428,12 +436,12 @@ class Product:
                 params = (name, price, i[0])
                 run_query(query, params)
             self.clear_entry()
-            self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+            self.refresh_grid()
             self.message['text'] = 'Record changed'
         else:
             self.message['text'] = 'Entry not correct!'
 
-    def record_delete(self, event=None):    # noqa
+    def del_record(self, event=None):    # noqa
         """Удаление данных из таблицы БД"""
         query = 'DELETE FROM {} WHERE id=?'.format(TABLE_NAME)
 
@@ -449,7 +457,7 @@ class Product:
                 run_query(query, params)
 
         self.clear_entry()
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.refresh_grid()
         self.message['text'] = 'Row deleted'
 
 

@@ -11,7 +11,7 @@ TABLE_NAME = 'product'      # Наименование таблицы в БД (�
 
 
 def run_query(query, params=()):
-    """ Подллючение к БД и выполнение запроса """
+    """ Подключение к БД и выполнение запроса """
     query_result = 'None'
     try:
         with sqlite3.connect(DB_NAME) as conn:
@@ -137,7 +137,7 @@ class MyFrame(wx.Frame):
         # Формируем грид `grid_data`
         self.grid_data = wx.grid.Grid(self.pnl_frame, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.DOUBLE_BORDER)
 
-        #   Grid
+        # Grid
         self.grid_data.CreateGrid(0, len(self.grid_field), wx.grid.Grid.SelectRows)
         self.grid_data.EnableEditing(False)
         self.grid_data.EnableGridLines(True)
@@ -238,18 +238,20 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.pm_setfilOnMenuSelect, id=self.pm_setfil.GetId())
         self.Bind(wx.EVT_MENU, self.pm_clrfilOnMenuSelect, id=self.pm_clrfil.GetId())
 
-        self.btn_add.Bind(wx.EVT_BUTTON, self.add_click)
-        self.btn_edit.Bind(wx.EVT_BUTTON, self.edit_click)
-        self.btn_del.Bind(wx.EVT_BUTTON, self.del_click)
+        self.btn_add.Bind(wx.EVT_BUTTON, self.click_add)
+        self.btn_edit.Bind(wx.EVT_BUTTON, self.click_edit)
+        self.btn_del.Bind(wx.EVT_BUTTON, self.click_del)
 
         # Отображение грида
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.refresh_grid()
 
-    def view_rec(self, sort_name='', sort_order='', filter_name='', filter_data=''):
-        """Отображение данных в гриде `grid_data`"""
+    def clear_grid(self):
         # Очистка `grid_data`
         if self.grid_data.GetNumberRows() > 0:
             self.grid_data.DeleteRows(0, self.grid_data.GetNumberRows())
+
+    def build_query_view(self, sort_name='', sort_order='', filter_name='', filter_data=''):
+        """ Отображение данных в гриде `grid_data` """
         # Запросы к БД с фильтрацией и сортировкой записей
         if filter_name != '':
             params = (filter_data,)
@@ -266,34 +268,31 @@ class MyFrame(wx.Frame):
             else:
                 query = 'SELECT * FROM {}'.format(TABLE_NAME)
             self.message.Label = 'Full table {} is displayed'.format(TABLE_NAME)
+        return query, params
 
-        # Выборка данных из базы
-        db_rows = run_query(query, params)
+    def data_output(self, db_rows):
         # Заполнение грида
-        if db_rows:
-            sum_col = [None for _ in range(self.grid_data.NumberCols)]
-            r = 0
-            for row in db_rows:
-                self.grid_data.AppendRows(1)
-                for c in range(self.grid_data.NumberCols):
-                    self.grid_data.SetCellValue(r, c, str(row[c]))
-                    # Выравниваем значения в ячейках по центру
-                    if self.grid_data.GetColLabelValue(c) == '№':
-                        self.grid_data.SetCellAlignment(r, c, wx.ALIGN_CENTRE, wx.ALIGN_TOP)
-                    # подсчет данных для итогов
-                    if self.db_field_type[c] in ('INTEGER', 'REAL'):
-                        try:
-                            if sum_col[c]:
-                                sum_col[c] += float(row[c])
-                            else:
-                                sum_col[c] = float(row[c])  # noqa
-                        except ValueError:
-                            pass  # print('ValueError', c)
-                r += 1
-            # Итоги
-            self.total_line(r, sum_col)
-        else:
-            self.message.label = 'Query error DB: {}, table: {}.'.format(DB_NAME, TABLE_NAME)
+        sum_col = [None for _ in range(self.grid_data.NumberCols)]
+        r = 0
+        for row in db_rows:
+            self.grid_data.AppendRows(1)
+            for c in range(self.grid_data.NumberCols):
+                self.grid_data.SetCellValue(r, c, str(row[c]))
+                # Выравниваем значения в ячейках по центру
+                if self.grid_data.GetColLabelValue(c) == '№':
+                    self.grid_data.SetCellAlignment(r, c, wx.ALIGN_CENTRE, wx.ALIGN_TOP)
+                # подсчет данных для итогов
+                if self.db_field_type[c] in ('INTEGER', 'REAL'):
+                    try:
+                        if sum_col[c]:
+                            sum_col[c] += float(row[c])
+                        else:
+                            sum_col[c] = float(row[c])  # noqa
+                    except ValueError:
+                        pass  # print('ValueError', c)
+            r += 1
+        # Итоги
+        self.total_line(r, sum_col)
 
     def total_line(self, r=0, sum_col=None):
         """Добавляет в конец грида итоги исходя из переданных данных.
@@ -313,8 +312,24 @@ class MyFrame(wx.Frame):
             except TypeError:
                 self.grid_data.SetCellValue(r, 2, '-')
 
+    def view_grid(self, query, params):
+        """ Отображение данных в гриде """
+        # Выборка данных из базы
+        db_rows = run_query(query, params)
+        self.clear_grid()
+        # Заполнение грида
+        if db_rows:
+            self.data_output(db_rows)
+        else:
+            self.message.Label = 'Query error DB: {}, table: {}.'.format(DB_NAME, TABLE_NAME)
+
+    def refresh_grid(self):
+        """ Обновление грида """
+        query, params = self.build_query_view(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.view_grid(query, params)
+
     def clear_entry(self):
-        """Очищает поля ввода/редактирования."""
+        """ Очищает поля ввода/редактирования """
         self.entry_name.Clear()
         self.entry_price.Clear()
 
@@ -409,7 +424,7 @@ class MyFrame(wx.Frame):
                                                     self.grid_field[self.db_field.index(self.sort_name)])
                 self.grid_data.SetColLabelValue(event.GetCol(), self.grid_field[event.GetCol()] + '  ^')
             self.sort_name = self.db_field[event.GetCol()]
-            self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+            self.refresh_grid()
         elif event.GetCol() < 0 and event.GetRow() < 0:
             self.grid_data.SelectAll()
         else:
@@ -428,11 +443,11 @@ class MyFrame(wx.Frame):
         if event.GetKeyCode() == wx.WXK_TAB:  # Tab
             self.grid_data.Navigate()
         elif event.GetKeyCode() == 1:  # Ctrl+a
-            self.add_click(event)
+            self.click_add(event)
         elif event.GetKeyCode() == 5:  # Ctrl+e
-            self.edit_click(event)
+            self.click_edit(event)
         elif event.GetKeyCode() == 4:  # Ctrl+d
-            self.del_click(event)
+            self.click_del(event)
         event.Skip()
 
     def pm_setfilOnMenuSelect(self, event):  # noqa
@@ -441,17 +456,17 @@ class MyFrame(wx.Frame):
         self.filter_name = self.filter_name_tmp
         self.filter_data = self.filter_data_tmp
         self.message.Label = 'No selected row(pm_setfilOnMenuSelect)'
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.refresh_grid()
         event.Skip()
 
     def pm_clrfilOnMenuSelect(self, event):  # noqa
         """Очищает переменные фильтра для записей отображаемых в гриде `grid_data`."""
         self.filter_name = ''
         self.filter_data = ''
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.refresh_grid()
         event.Skip()
 
-    def add_click(self, event):
+    def click_add(self, event):
         """Добавление данных в таблицу БД."""
         try:
             price = float(self.entry_price.GetValue().replace(',', '.'))
@@ -466,13 +481,13 @@ class MyFrame(wx.Frame):
             params = (name, price)
             run_query(query, params)
             self.clear_entry()
-            self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+            self.refresh_grid()
             self.message.Label = 'Record added'
         else:
             self.message.Label = 'Entry not correct!'
         event.Skip()
 
-    def edit_click(self, event):
+    def click_edit(self, event):
         """Изменение данных в таблице БД."""
         try:
             price = float(self.entry_price.GetValue().replace(',', '.'))
@@ -489,13 +504,13 @@ class MyFrame(wx.Frame):
                 params = (name, price, i[0])
                 run_query(query, params)
             self.clear_entry()
-            self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+            self.refresh_grid()
             self.message.Label = 'Record changed'
         else:
             self.message.Label = 'Entry not correct!'
         event.Skip()
 
-    def del_click(self, event):
+    def click_del(self, event):
         """Удаление данных из таблицы БД."""
         query = 'DELETE FROM {} WHERE id=?'.format(TABLE_NAME)
 
@@ -511,7 +526,7 @@ class MyFrame(wx.Frame):
                 run_query(query, params)
 
         self.clear_entry()
-        self.view_rec(self.sort_name, self.sort_order, self.filter_name, self.filter_data)
+        self.refresh_grid()
         self.message.Label = 'Row deleted'
         event.Skip()
 
