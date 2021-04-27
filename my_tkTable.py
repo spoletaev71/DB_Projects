@@ -170,7 +170,7 @@ class Product:
         self.refresh_grid()
 
     def build_query_view(self, sort_name='', sort_order='', filter_name='', filter_data=''):
-        """ Отображение данных в гриде """
+        """ Форирование запросов """
         # Запросы к БД с фильтрацией и сортировкой записей грида
         if filter_name != '':
             params = (filter_data,)
@@ -247,6 +247,7 @@ class Product:
             self.grid_data.insert('', tk.END, values=tuple(values_total))
 
     def view_grid(self, query, params):
+        """ Отображение данных в гриде """
         # Выборка данных из базы
         db_rows = run_query(query, params)
         self.clear_grid()

@@ -251,7 +251,7 @@ class MyFrame(wx.Frame):
             self.grid_data.DeleteRows(0, self.grid_data.GetNumberRows())
 
     def build_query_view(self, sort_name='', sort_order='', filter_name='', filter_data=''):
-        """ Отображение данных в гриде `grid_data` """
+        """ Форирование запросов """
         # Запросы к БД с фильтрацией и сортировкой записей
         if filter_name != '':
             params = (filter_data,)
