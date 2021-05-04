@@ -30,19 +30,18 @@ def config(filename='mydb.ini', section='postgresql'):
     return db
 
 
-def run_query(query_run, query_param=()):
+def run_query(query_run, sel=False, query_param=()):
     """ Подключение к БД и выполнение запроса """
-    query_result = 'None'
+    query_result = None
     try:
         # psycopg2.connect(database="db", user="postgres", password="*", host="127.0.0.1", port="5432")
         params = config()
         with psycopg2.connect(**params) as conn:
             conn.autocommit = True
             cursor = conn.cursor()
-            query_result = cursor.execute(query_run, query_param)
-            if 'SELECT' in query_run:
+            cursor.execute(query_run, query_param)
+            if sel:
                 query_result = cursor.fetchall()
-                view_select(query_result)
     except Exception:  # noqa # Отлавливаем широкий круг ошибок для вывода в консоль
         print("Exception in user code:")
         print("-" * 60)
@@ -99,21 +98,25 @@ if __name__ == '__main__':
         run_query(q)
 
     # add
-    run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", ('power cable', 10))
-    run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", ('mouse', 100))
-    run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", ('keyboard', 200))
-    run_query("SELECT * FROM {};".format(TABLE_NAME))
+    run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", False, ('power cable', 10))
+    run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", False, ('mouse', 100))
+    run_query("CALL product_add(%s::VARCHAR(100), %s::MONEY)", False, ('keyboard', 200))
+    view_select(run_query("SELECT * FROM {};".format(TABLE_NAME), True))
 
     # edit
-    run_query("CALL product_edit(%s, %s::VARCHAR(100), %s::MONEY)", (2, 'CPU', 1499.99))
-    run_query("SELECT * FROM {};".format(TABLE_NAME))
+    run_query("CALL product_edit(%s, %s::VARCHAR(100), %s::MONEY)", False, (2, 'CPU', 1499.99))
+    view_select(run_query("SELECT * FROM {};".format(TABLE_NAME), True))
 
     # del
-    run_query("CALL product_del(%s)", (1,))
-    run_query("SELECT * FROM {};".format(TABLE_NAME))
+    run_query("CALL product_del(%s)", False, (1,))
+    view_select(run_query("SELECT * FROM {};".format(TABLE_NAME), True))
 
+    clr = False
     while True:
-        print(' Выполнено.\n Для очистки БД от изменений, нажмите клавишу "c"\n Для выхода "q"')
+        if clr:
+            print(' Для выхода нажмите клавишу "q".')
+        else:
+            print(' Для очистки БД от изменений нажмите клавишу "c", а для выхода "q".')
         if keyboard.read_key() == "c":
             # Чистим все что натворили в БД(только для PostgreSQL version >9.1)
             query = [
@@ -124,6 +127,8 @@ if __name__ == '__main__':
             ]
             for q in query:
                 run_query(q)
+            clr = True
+            print('Очищено успешно.')
         elif keyboard.is_pressed("q"):
             # Завершаем работу программы
             print('До новых встреч! :)')
